@@ -1,4 +1,4 @@
-local texttoparse = [[run "print('hacks'"]]
+local texttoparse = [[run "print('hacks')";]]
 -- nice hacks
 function mysplit (inputstr, sep)
         if sep == nil then
@@ -27,6 +27,13 @@ function Parse(text)
         if char == " " and not instring then
             instructions[#instructions+1] = currentinstruction
             currentinstruction = ""
+        elseif char == ";" and not instring then
+            if #currentinstruction == 0 then
+                instructions[#instructions + 1] = ";"
+            else
+                instructions[#instructions+1] = currentinstruction
+                instructions[#instructions+1] = ";"
+            end
         elseif num == #texttoparse then
             instructions[#instructions+1] = currentinstruction..char
         else
@@ -57,21 +64,23 @@ function executeinstructions(instructions)
             local command = commands[instructions[3]]
             if instructions[4] == "auto" then
                 assert(auto[instructions[3]], "This command must have specified arguments.")
-                assert(instructions[5] == "#", "Command ended late. Extra tokens must not be added after 'auto' token.")
+                assert(instructions[5] == ";", "Command ended late. Extra tokens must not be added after 'auto' token.")
                 command()
             elseif instructions[4] == "params" then
                 assert(string.match(instructions[5], '%b""'), "Expected string token after 'params' token.")
-                 assert(instructions[6] == "#", "Command ended late. Extra tokens must not be added after 'string' token.")
+                 assert(instructions[6] == ";", "Command ended late. Extra tokens must not be added after 'string' token.")
 
                  local paramaters = mysplit(string.sub(instructions[5],2,#instructions[5]-1), ",")
                  command(unpack(paramaters))
             end
         end
     elseif instructions[1] == "view" then
-        assert(instructions[2] == "params","Expected 'params' token after view instructio.")
+        assert(instructions[2] == "params","Expected 'params' token after view instruction.")
         
     elseif instructions[1] == "run" then
-        loadstring(string.sub(instructions[2],2,#instructions[2]-1))() -- load string omgomgomg !?!?!?!
+        assert(string.match(instructions[2], '%b""'), "Expected string token after 'run' instruction.")
+        assert(instructions[3] == ";", "Command ended late. Extra tokens must not be added after 'string' token.")
+        loadstring(string.sub(instructions[2],2,#instructions[2]-1))() -- load string omgomgomg !?!?!?! yes i am hackerman scam
     end
 end
 
